@@ -20,15 +20,18 @@ def login_facebook(driver):
 
 def skip_existing_listings(driver, listings):
     driver.get("https://www.facebook.com/marketplace/you/selling")
-    listings_dup = listings
+    time.sleep(5)
+    driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+
+    listings_dup = listings.copy()
 
     for listing in listings_dup:
-        xpath_expr = f"//*[contains(text(), '{listing['title']}')]"
+        xpath_expr = f"//span[contains(text(), '{listing['title']}')]"
         try:
             existing_listing = driver.find_element(By.XPATH, xpath_expr)
-            if existing_listing.text == listing.title:
+            if existing_listing.text == listing['title']:
+                print("DEBUG: Existing listing: " + listing['title'] + " will be skipped.")
                 listings.remove(listing)
-                print("DEBUG: Existing listing: " + listing['text'] + " will be skipped.")
         except Exception as err:
             print("DEBUG: Listing doesn't exist")
             continue
@@ -37,8 +40,6 @@ def skip_existing_listings(driver, listings):
 
 def create_facebook_listing(driver, data):
     try: 
-        login_facebook(driver)
-
         for car_data in data: 
             print("DEBUG: Starting listing creation for Car: " + str(car_data['year']) + " " + car_data['name'] + " " + car_data['model'])
 
@@ -178,6 +179,9 @@ if __name__ == "__main__":
     options = Options()
     options.add_argument("-headless")
     driver = webdriver.Firefox(options=options)  # You can use Firefox WebDriver as well
+
+    login_facebook(driver)
+    time.sleep(3)
 
     with open(json_file, "r") as file:
         data = json.load(file)
