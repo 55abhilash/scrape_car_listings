@@ -8,10 +8,8 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
 import time
 
-def login_facebook(driver):
+def login_facebook(driver, username, password):
     # Replace these with your Facebook login credentials
-    username = "abhilashmhaisne@gmail.com"
-    password = "LorikCanaar_123"
 
     driver.get("https://www.facebook.com")
     driver.find_element(By.NAME, "email").send_keys(username)
@@ -180,7 +178,7 @@ if __name__ == "__main__":
     options.add_argument("-headless")
     driver = webdriver.Firefox(options=options)  # You can use Firefox WebDriver as well
 
-    login_facebook(driver)
+    login_facebook(driver, username, password)
     time.sleep(3)
 
     with open(json_file, "r") as file:
