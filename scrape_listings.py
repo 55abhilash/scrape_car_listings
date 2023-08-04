@@ -48,7 +48,7 @@ def scrape_car_listings(url):
         print(f"Failed to fetch data. Status Code: {response.status_code}")
         return None
 
-if __name__ == "__main__":
+def scrape_listings():
     url = "https://www.vancouverhonda.com/en/used-inventory/api/listing?namedSorting=featuredDESC&limit=24&page=1&imageSize=w400h300c"
 
     # Create a folder to store car pictures
@@ -66,3 +66,4 @@ if __name__ == "__main__":
         print("Car listings scraped and stored in car_listings.json")
     else:
         print("Failed to scrape car listings.")
+    return car_listings

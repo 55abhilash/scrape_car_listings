@@ -20,8 +20,11 @@ def skip_existing_listings(driver, listings):
     driver.get("https://www.facebook.com/marketplace/you/selling")
     time.sleep(5)
     driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+    time.sleep(5)
 
     listings_dup = listings.copy()
+    skipped_listings = []
+    tbc_listings = []
 
     for listing in listings_dup:
         xpath_expr = f"//span[contains(text(), '{listing['title']}')]"
@@ -29,16 +32,20 @@ def skip_existing_listings(driver, listings):
             existing_listing = driver.find_element(By.XPATH, xpath_expr)
             if existing_listing.text == listing['title']:
                 print("DEBUG: Existing listing: " + listing['title'] + " will be skipped.")
+                skipped_listings.append(listing)                
                 listings.remove(listing)
         except Exception as err:
             print("DEBUG: Listing doesn't exist")
+            tbc_listings.append(listing)
             continue
-    return listings
+    return {'skipped_listings': skipped_listings, 'tbc_listings': tbc_listings}
 
 
-def create_facebook_listing(driver, data):
-    try: 
-        for car_data in data: 
+def create_facebook_listings(driver, data):
+    success_listings = []
+    failed_listings = []
+    for car_data in data:
+        try:  
             print("DEBUG: Starting listing creation for Car: " + str(car_data['year']) + " " + car_data['name'] + " " + car_data['model'])
 
             driver.get("https://www.facebook.com/marketplace/create/vehicle") 
@@ -166,12 +173,16 @@ def create_facebook_listing(driver, data):
             print("DEBUG: Car: " + str(car_data['year']) + " " + car_data['name'] + " " + car_data['model'] + " listed successfully.")
             time.sleep(10)
 
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        driver.quit()
+            success_listings.append(car_data)
 
-if __name__ == "__main__":
+        except Exception as e:
+            print("DEBUG: Error with " + car_data['title'])
+            print(f"Error: {e}")
+            failed_listings.append(car_data)
+            continue
+    return {'success': success_listings, 'failed': failed_listings}
+
+def post_fb(username, password):
     # Replace 'car_details.json' with the actual path to your JSON file
     json_file = "car_listings.json"
     options = Options()
@@ -183,4 +194,8 @@ if __name__ == "__main__":
 
     with open(json_file, "r") as file:
         data = json.load(file)
-        create_facebook_listing(driver, skip_existing_listings(driver, data))
+        listings_seg = skip_existing_listings(driver, data)
+        post_fb_results = create_facebook_listings(driver, listings_seg['tbc_listings'])
+        post_fb_results['skipped'] =  listings_seg['skipped_listings']
+    
+    return post_fb_results
